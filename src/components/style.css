@@ -1,0 +1,14 @@
+
+
+
+.nav-link:hover
+{
+	color:#fff;
+	background-image: linear-gradient(to right, #4ca3dc 0%, #0bd322 74%);
+	
+}
+.footer
+{
+	margin-top:75px;
+	bottom: 0%;
+}
