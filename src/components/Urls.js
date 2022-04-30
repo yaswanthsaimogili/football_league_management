@@ -1,15 +1,14 @@
-import React from 'react'
-import Teams from '../Teams';
-import AddTeam from '../AddTeam';
-function Urls() {
-    const links ={add : "http://localhost:8080/add", delete: "http://localhost:8080/delete/" ,edit : "http://localhost:8080/edit/", get :"http://localhost:8080/getall" }
+import React ,{createContext,useState}from 'react'
+import Routing from './Routing';
 
-    return (
-      <>
-      <Teams teams="links"/>
-      <AddTeam  teams={links} />
-      
-      </>
+export const store = createContext();
+function Urls() {
+  const [url,setUrl]=useState("http://localhost:8080/admin")
+  return (
+    <store.Provider value ={[url,setUrl]}>
+<Routing/>
+
+    </store.Provider>
 
   )
 }

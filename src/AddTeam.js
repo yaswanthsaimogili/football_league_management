@@ -1,9 +1,10 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useContext} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {Form,Button} from "react-bootstrap"
-
+import {store} from "./components/Urls"
 function AddTeam() {
+
     const initialValues = {
         teamId:"",
         teamName: "",
@@ -12,7 +13,7 @@ function AddTeam() {
         teamImage: "",
       };
     
-    
+      const[url,setUrl]=useContext(store);
       const [formValues, setFormValues] = useState(initialValues);
       const [formErrors, setFormErrors] = useState({});
       const [isSubmit, setIsSubmit] = useState(false);
@@ -30,7 +31,7 @@ function AddTeam() {
        
         axios({
             method: 'POST',
-            url: 'http://localhost:8080/add',
+            url: url+'/addTeam',
             headers: {
                 'Content-Type': 'application/json',
                     },
@@ -44,12 +45,28 @@ function AddTeam() {
                 alert("Team Saved Successfully");
                 TeamList(); 
             }
-        })
+            
+        }).catch(function (error) {
+          if (error.response) {
+            // Request made and server responded
+
+            alert(error.response.data.message)
+            
+          } else if (error.request) {
+            // The request was made but no response was received
+            alert(error.request);
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            alert('Error', error.message);
+          }
+      
+        });
       };
     const history = useNavigate();
     const  TeamList = () => {
         return history("/teams");
     };
+ 
 
       const teamId = useParams();
       useEffect(()=>{ 
@@ -68,7 +85,7 @@ function AddTeam() {
        e.preventDefault();
        console.log(teamId)
         axios.put(
-            'http://localhost:8080/edit/'+formValues.teamId,
+            url+'/editTeam/'+formValues.teamId,
            formValues
         )
         .then(response => {
@@ -80,13 +97,26 @@ function AddTeam() {
                alert("Team updated Successfully");
                TeamList(); 
             }
-        })
-      };
+        }).catch(function (error) {
+          if (error.response) {
+            // Request made and server responded
 
+            alert(error.response.data.message)
+            
+          } else if (error.request) {
+            // The request was made but no response was received
+            alert(error.request);
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            alert('Error', error.message);
+          }
+      
+      });
+    }
 
     const  findTeamById = (teamId) =>{
      
-        axios.get("http://localhost:8080/get/"+teamId.id).then(response => setFormValues(response.data))
+        axios.get(url+"/getTeam/"+teamId.id).then(response => setFormValues(response.data))
 
 
       }
@@ -104,11 +134,11 @@ function AddTeam() {
         if (!values.imageUrl) {
           errors.imageUrl = "Image Url is required!";
         }
-        if (!values.teamLocation && !teamLocationCheck.test(values.teamLocation)) {
+        if (!(values.teamLocation && teamLocationCheck.test(values.teamLocation))) {
           errors.teamLocation = "team Location should be atleast 3 characters!";
         }
-        if (values.teamCapacity===0) {
-          errors.teamCapacity = "team Capacity is required ";
+        if (values.teamCapacity===1) {
+          errors.teamCapacity = "team Capacity is required and greater than 10 ";
         }
       
     
@@ -131,7 +161,7 @@ function AddTeam() {
   </Form.Group>
   <p style={{color:"red"}}>{formErrors.teamName}</p>
   <Form.Group className="mb-3" controlId="formBasicEmail">
-    {formValues.teamLocation}
+   
     <Form.Label>TeamLocation</Form.Label>
     <Form.Control  type="text"
                   name="teamLocation"

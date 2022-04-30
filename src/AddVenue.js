@@ -1,14 +1,19 @@
+import axios from "axios";
 import React, { useState, useEffect } from "react";
-import "./App.css";
-
-function AddVenue() {
+import { useNavigate, useParams } from "react-router-dom";
+import {Form,Button} from "react-bootstrap"
+import Venues from "./Venue";
+function AddVenue(props) {
     const initialValues = {
+        venueId:"",
         venueName: "",
-        imageUrl: "",
         venueLocation: "",
         venueCapacity: "",
-        venueDescription: "",
+        venueImage: "",
+        venueDescription: ""
       };
+    
+    
       const [formValues, setFormValues] = useState(initialValues);
       const [formErrors, setFormErrors] = useState({});
       const [isSubmit, setIsSubmit] = useState(false);
@@ -16,115 +21,164 @@ function AddVenue() {
       const handleChange = (e) => {
         const { name, value } = e.target;
         setFormValues({ ...formValues, [name]: value });
+    
       };
     
       const handleSubmit = (e) => {
+    
         e.preventDefault();
         setFormErrors(validate(formValues));
-        setIsSubmit(true);
+       
+        axios({
+            method: 'POST',
+            url: 'http://localhost:8080/add',
+            headers: {
+                'Content-Type': 'application/json',
+                    },
+            data:formValues,
+        })
+        .then(response => {
+            if(response.data != null)
+            {
+               setIsSubmit(true);
+               setFormValues(initialValues);
+                alert("Venue Saved Successfully");
+                VenueList(); 
+            }
+        })
       };
-    
-      useEffect(() => {
-        console.log(formErrors);
+    const history = useNavigate();
+    const  VenueList = () => {
+        return history("/venues");
+    };
+
+      const venueId = useParams();
+      useEffect(()=>{ 
+            if(venueId)
+            {
+                findVenueById(venueId);
+            }
+            
         if (Object.keys(formErrors).length === 0 && isSubmit) {
           console.log(formValues);
         }
-      }, [formErrors]);
+      }, [formErrors]) 
+      
+
+      const handleUpdate = (e) => {
+       e.preventDefault();
+       console.log(venueId)
+        axios.put(
+            'http://localhost:8080/edit/'+formValues.venueId,
+           formValues
+        )
+        .then(response => {
+            if(response.data != null)
+            {
+               setIsSubmit(true);
+               setFormValues(initialValues);
+                
+               alert("Venue updated Successfully");
+               VenueList(); 
+            }
+        })
+      };
+
+
+    const  findVenueById = (venueId) =>{
+     
+        axios.get("http://localhost:8080/get/"+venueId.id).then(response => setFormValues(response.data))
+
+
+      }
+      
+
+
+      let venueNameCheck =/^[A-Za-z]{3,30}$/;
+      let venueLocationCheck =/^[A-Za-z]{3,30}$/;
       const validate = (values) => {
         const errors = {};
-        if (!values.venueName) {
-          errors.venueName = "Venue Name is required!";
+        if (!(values.venueName && venueNameCheck.test(values.venueName))) {
+          errors.venueName = "venue Name should be atleast 3 characters!";
         }
         if (!values.imageUrl) {
           errors.imageUrl = "Image Url is required!";
         }
-        if (!values.venueLocation) {
-          errors.venueLocation = "Venue Location is required";
+        if (!values.venueLocation && !venueLocationCheck.test(values.venueLocation)) {
+			errors.venueLocation = "venue Location should be atleast 3 characters!";
+		}
+		if (values.venueCapacity===0) {
+          errors.venueCapacity = "venue Capacity is required ";
         }
-        if (!values.venueCapacity) {
-          errors.venueCapacity = "Venue Capacity is required";
-        }
-        if (!values.venueDescription) {
-          errors.venueDescription = "Venue Description is required";
-        }
+      
     
         return errors;
       };
     
       return (
-        <div className="container">
-          {Object.keys(formErrors).length === 0 && isSubmit ? (
-            <div className="ui message success">Signed in successfully</div>
-          ) : (
-            <div></div>
-          )}
-          <form onSubmit={handleSubmit}>
-            <h1>Venue Form</h1>
-            <div className="ui divider"></div>
-            <div className="ui form">
-              <div className="field">
-                <label>Name</label>
-                <input
-                  type="text"
-                  name="venueName"
-                  placeholder="Enter Venue Name"
-                  value={formValues.venueName}
-                  onChange={handleChange}
-                ></input>
-              </div>
-              <p>{formErrors.venueName}</p>
-    
-              <div className="field">
-                <label>Image URL</label>
-                <input
-                  type="text"
-                  name="imageUrl"
-                  placeholder="Enter Venue URL"
-                  value={formValues.imageUrl}
-                  onChange={handleChange}
-                ></input>
-              </div>
-              <p>{formErrors.imageUrl}</p>
-    
-              <div className="field">
-                <label>Location</label>
-                <input
-                  type="text"
+        
+        <div className="container" style={{background:'#f5f5fa'}}>
+          <>
+          {props.y}
+          </>
+          <Form >
+          <h1>Venue Form</h1>
+          <Form.Group className="mb-3" controlId="formBasicEmail">
+            <Form.Label>VenueName</Form.Label>
+            <Form.Control type="text"
+                name="venueName"
+                placeholder="Enter venue Name"
+                value={formValues.venueName}
+                onChange={handleChange}/>
+          </Form.Group>
+		  	<p style={{color:"red"}}>{formErrors.venueName}</p>
+  <Form.Group className="mb-3" controlId="formBasicEmail">
+    {formValues.venueLocation}
+    <Form.Label>VenueLocation</Form.Label>
+    <Form.Control  type="text"
                   name="venueLocation"
-                  placeholder="Enter Venue Location"
+                  placeholder="Enter venue Location"
                   value={formValues.venueLocation}
-                  onChange={handleChange}
-                ></input>
-              </div>
-              <p>{formErrors.venueLocation}</p>
-    
-              <div className="field">
-                <label>Capacity</label>
-                <input
-                  type="text"
+                  onChange={handleChange} />
+   
+  </Form.Group>
+  <p style={{color:"red"}}>{formErrors.venueLocation}</p>
+  <Form.Group className="mb-3" controlId="formBasicEmail">
+    <Form.Label>VenueCapacity</Form.Label>
+    <Form.Control type="number"
                   name="venueCapacity"
-                  placeholder="Enter Venue Capacity"
+                  placeholder="Enter venue Capacity"
                   value={formValues.venueCapacity}
-                  onChange={handleChange}
-                ></input>
-              </div>
-              <p>{formErrors.venueCapacity}</p>
+                  onChange={handleChange} />
+   
+  </Form.Group>
+  <p style={{color:"red"}}>{formErrors.venueCapacity}</p>
+  <Form.Group className="mb-3" controlId="formBasicEmail">
+    <Form.Label>venueImage</Form.Label>
+    <Form.Control type="text"
+                  name="venueImage"
+                  placeholder="Enter venue URL"
+                  value={formValues.venueImage}
+                  onChange={handleChange} />
+  
+  </Form.Group>
+  <p style={{color:"red"}} >{formErrors.imageUrl}</p>
     
-              <div className="field">
-                <label>Description</label>
-                <textarea
+  <Form.Group className="mb-3" controlId="formBasicEmail">
+    <Form.Label>venueDescription</Form.Label>
+    <Form.Control type="text"
                   name="venueDescription"
-                  placeholder="Enter Venue Description"
+                  placeholder="Enter venue Description"
                   value={formValues.venueDescription}
-                  onChange={handleChange}
-                ></textarea>
-              </div>
-              <p>{formErrors.venueDescription}</p>
-              <button className="fluid ui button blue">Submit</button>
-            </div>
-          </form>
+                  onChange={handleChange} />
+  
+  </Form.Group>
+  <p style={{color:"red"}} >{formErrors.venueDescription}</p>
+             
+              <button type="button" className="btn btn-primary" onClick={formValues.venueId ? handleUpdate : handleSubmit} >Submit</button>
+          
+          </Form>
         </div>
-      );
-}
-
-export default AddVenue
+);
+      }
+export default AddVenue;

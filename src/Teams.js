@@ -1,19 +1,36 @@
-import React, { useState,useEffect } from 'react'
+import React, { useState,useEffect ,useContext} from 'react'
 import {Card,Row,Container} from'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit, faSearch, faTrash ,faUserPlus} from '@fortawesome/free-solid-svg-icons'
 import axios from 'axios';
-
+import {store} from "./components/Urls"
 import {  Link } from "react-router-dom";
-function Teams(props) {
+
+
+
+function Teams() {
+  const[url,setUrl]=useContext(store);
   const [data,setData]=useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
   const [searchInput, setSearchInput] = useState('');
-  
-  
+    
 
   useEffect(()=>{
-    axios.get("http://localhost:8080/getall").then(response => setData(response.data))
+    axios.get(url+"/getTeams").then(response => setData(response.data)).catch(function (error) {
+      if (error.response) {
+        // Request made and server responded
+
+        alert(error.response.data.message)
+        
+      } else if (error.request) {
+        // The request was made but no response was received
+        alert(error.request);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        alert('Error', error.message);
+      }
+  
+  });
     console.log(data);
     
   },[])
@@ -31,13 +48,27 @@ function Teams(props) {
         setFilteredResults(data)
     }
 }
-  const deleteTeam = (teamName,teamId) =>
+  const deleteTeam = async (teamName,teamId) =>
   {
-    axios.delete("http://localhost:8080/delete/"+teamId).then(response => {
+    await axios.delete(url+"/deleteTeam/"+teamId).then(response => {
           alert("Team "+ teamName+" is deleted successfully"); 
           setData(data.filter(data => data.teamId !== teamId));
   }
-  )
+  ).catch(function (error) {
+    if (error.response) {
+      // Request made and server responded
+
+      alert(error.response.data.message)
+      
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.log(error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.log('Error', error.message);
+    }
+
+});
 
  
 
@@ -80,7 +111,7 @@ function Teams(props) {
     <h5 className="card-text"> TeamName: {item.teamName} </h5>
     <h5 className="card-text"> TeamLocation: {item.teamLocation} </h5>
     <h5 className="card-text"> TeamMeMembers: {item.teamSize} </h5>
-    <Link to={"/edit/"+item.teamId} className="btn btn-primary" style={{marginRight:"20px"}} ><FontAwesomeIcon icon={faEdit} />Edit</Link>
+    <Link to={"/editTeam/"+item.teamId} className="btn btn-primary" style={{marginRight:"20px"}} ><FontAwesomeIcon icon={faEdit} />Edit</Link>
     <button type="button" className="btn btn-primary" onClick={() => deleteTeam(item.teamName,item.teamId)}><FontAwesomeIcon icon={faTrash} />Delete</button>
     </Card.Body>
   </Card>
